@@ -53,4 +53,40 @@ def decode_bpsk_signal(x, freq=1000, rate = 8000, symbol_len = 250, detection_th
     LPFbw - this is the bandwidth in rad/sec of the low-pass filter that is used after
          multiplying with a cosine
     """
-    pass
+    start_i, end_i = find_start_and_end(x)
+    x = x[start_i:end_i]
+ 
+    
+    # m(t) * cos(wt)
+    foo = []
+    ts = np.arange(0, len(x)/float(rate), 1/float(rate))
+    
+    for t, n in zip(ts, x):
+#         foo += [-8192*np.cos(2 * np.pi * freq * t + np.pi/2*(n+1))]
+        foo += [-n/*np.cos(2 * np.pi * freq * t)]
+
+    
+    
+    x = foo
+    mplib.plot(x)
+    mplib.show()
+    print len(x)
+    wave = thinkdsp.Wave(x, rate)
+    spectrum = wave.make_spectrum()
+    spectrum.low_pass(320/2)
+    x = spectrum.make_wave().ys
+    print len(x)
+    mplib.plot(x)
+    mplib.show()
+
+    
+    return x 
+
+def low_pass(x, LPFbw, ts):
+
+    w_c = LPFbw / 2
+
+    h = 1 / np.pi * np.sin(w_c * ts) / ts
+
+    return np.convolve(x, h)
+
